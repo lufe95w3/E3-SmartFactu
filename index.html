@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FactuSmart</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0e6d2;
+      padding: 20px;
+    }
+
+    .main-wrapper {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .form-container {
+      flex: none;
+      width: 850px;
+      background-color: #fffaf0;
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border: 1px solid #d2b48c;
+    }
+
+    h1 {
+      text-align: center;
+      color: #8b5e3c;
+    }
+
+    label {
+      display: block;
+      margin: 9px 0 5px;
+      color: #5e3c2b;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0 15px 0;
+      border: 1px solid #d2b48c;
+      border-radius: 5px;
+      background-color: #fff8e1;
+      color: #333;
+      /* ← color fuente */
+      transition: background-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      background-color: #fff8e1;
+      outline: none;
+    }
+
+    .inline-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .inline-group>div {
+      flex: 1;
+    }
+
+    button {
+      width: 100%;
+      padding: 9px;
+      background-color: #c2a477;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 15.5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .producto-item {
+      margin-bottom: 10px;
+    }
+
+    .total-visual {
+      margin-top: 10px;
+      font-weight: normal;
+      text-align: right;
+      color: #5e3c2b;
+    }
+
+    .resultado {
+      flex: none;
+      width: 450px;
+      background-color: #fdf5e6;
+      border-left: 5px solid #c2a477;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      overflow-wrap: break-word;
+      position: relative;
+    }
+
+    .detalle-lista {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f9f2e7;
+      border: 1px dashed #d2b48c;
+    }
+
+    .detalle-lista ul {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .detalle-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 15.2px;
+    }
+
+    .detalle-item span:last-child {
+      font-size: 14.9px; /* tamano precio */
+    }
+
+
+    .icono-eliminar {
+      background: none;
+      border: none;
+      color: #8b0000;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    #guardarPDF {
+      display: none;
+      margin-top: 15px;
+      background-color: #8b5e3c;
+    }
+
+    .total-visual {
+      margin-top: 12px;
+      padding: 10px;
+      background-color: #fff8e1;
+      border: 1px solid #d2b48c;
+      border-radius: 8px;
+      color: #5e3c2b;
+      font-size: 13.7px;
+      text-align: right;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .total-visual div {
+      margin-bottom: 4px;
+    }
+
+    /* Estilos para mostrar Teléfono y Correo en una sola línea */
+    #infoAdicional {
+      margin-top: 1px;
+    }
+
+    .info-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .info-inline>div {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .info-inline label {
+      display: block;
+      margin-bottom: 2px;
+      color: #5e3c2b;
+    }
+
+    .info-inline input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d2b48c;
+      border-radius: 5px;
+      background-color: #fff8e1;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-wrapper">
+    <div class="form-container">
+      <h1>FactuSmart</h1>
+      <form id="facturaForm">
+        <div class="inline-group">
+          <div>
+            <label for="nombre">Nombre del cliente:</label>
+            <input type="text" id="nombre" required />
+          </div>
+          <div>
+            <label for="apellido">Apellido del cliente:</label>
+            <input type="text" id="apellido" required />
+          </div>
+        </div>
+
+        <div class="producto-item">
+          <label>Seleccionar producto o servicio:</label>
+          <select id="productoSelect">
+            <option value="">Seleccione un producto</option>
+          </select>
+          <input type="number" id="productoPrecio" placeholder="Precio" style="display: none;" />
+          <input type="text" id="productoNombre" placeholder="Nombre del producto" style="display: none;" />
+          <button type="button" onclick="agregarProducto()">Agregar Producto o Servicio</button>
+        </div>
+
+        <div class="detalle-lista">
+          <strong>Productos agregados:</strong>
+          <ul id="listaVisualProductos"></ul>
+        </div>
+
+        <div class="total-visual" id="totalVisual">Subtotal: $0 COP | IVA (19%): $0 COP | Total: $0 COP</div>
+
+        <div id="infoAdicional" style="display: none;">
+          <h3>Datos para facturación electrónica</h3>
+          <div class="info-inline">
+            <div>
+              <label for="telefono">Teléfono del cliente:</label>
+              <input type="text" id="telefono" />
+            </div>
+            <div>
+              <label for="correo">Correo electrónico del cliente:</label>
+              <input type="email" id="correo" />
+            </div>
+          </div>
+        </div>
+
+
+        <button type="submit">Generar Factura</button>
+      </form>
+    </div>
+
+    <div class="resultado" id="resultado">
+      <button id="guardarPDF">Guardar PDF</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const productosPredefinidos = {
+        'Reparación de pantalla': 120000,
+        'Cambio de batería': 85000,
+        'Protector de vidrio': 25000,
+        'Cargador original': 60000,
+        'Cable USB tipo C': 30000,
+        'Audífonos Bluetooth': 90000,
+        'Estuche antigolpes': 40000,
+        'Limpieza interna': 50000,
+        'Formateo y actualización': 70000,
+        'Cambio de puerto de carga': 95000,
+        'Xiaomi Redmi A2': 380000,
+        'Xiaomi Redmi 9A': 420000,
+        'Xiaomi Redmi Note 12': 750000,
+        'Xiaomi Poco M5': 720000,
+        'Xiaomi 13 Lite': 1800000,
+        'Xiaomi 13 Pro': 3200000,
+        'Samsung Galaxy A14': 780000,
+        'Samsung Galaxy M13': 650000,
+        'Motorola G22': 600000,
+        'Motorola Edge 30': 1450000,
+        'iPhone 11 64GB': 2100000,
+        'iPhone 14 Pro 128GB': 4600000
+      };
+
+      const listaVisual = document.getElementById('listaVisualProductos');
+      const totalVisual = document.getElementById('totalVisual');
+      const productoSelect = document.getElementById('productoSelect');
+      const productoPrecio = document.getElementById('productoPrecio');
+      const productoNombre = document.getElementById('productoNombre');
+      const productosAgregados = [];
+      let datosFactura = null;
+
+      // Inicializamos el número de factura.
+     let facturaNumero = 1;
+
+     function formatoNumeroFactura(n) {
+      return n.toString().padStart(3, '0');
+
+     } 
+
+
+      for (let key in productosPredefinidos) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${key} - $${productosPredefinidos[key].toLocaleString()} COP`;
+        productoSelect.appendChild(option);
+      }
+      const customOption = document.createElement('option');
+      customOption.value = 'otro';
+      customOption.textContent = 'Producto personalizado';
+      productoSelect.appendChild(customOption);
+
+      productoSelect.addEventListener('change', () => {
+        if (productoSelect.value === 'otro') {
+          productoNombre.style.display = 'block';
+          productoPrecio.style.display = 'block';
+          productoNombre.value = '';
+          productoPrecio.value = '';
+        } else {
+          productoNombre.style.display = 'none';
+          productoPrecio.style.display = 'none';
+          productoNombre.value = productoSelect.value;
+          productoPrecio.value = productosPredefinidos[productoSelect.value];
+        }
+      });
+
+      function actualizarLista() {
+        listaVisual.innerHTML = '';
+        let subtotal = 0;
+        productosAgregados.forEach((p, i) => {
+          const li = document.createElement('li');
+          li.className = 'detalle-item';
+          li.innerHTML = `
+            <span>
+              <span style="color:#8b5e3c">${p.nombre}</span>
+              <span style="float:right; color:#444;">$${p.precio.toLocaleString()} COP</span>
+            </span>
+            <button class="icono-eliminar" onclick="eliminarProducto(${i})">🗑️</button>
+            <hr style="border: 0; border-top: 1px dashed #d2b48c; margin: 6px 0;">
+          `;
+
+          listaVisual.appendChild(li);
+          subtotal += p.precio;
+        });
+
+        const iva = subtotal * 0.19;
+        const totalFactura = subtotal + iva;
+
+        totalVisual.innerHTML = `
+          <div><strong>Subtotal:</strong> $${subtotal.toLocaleString()} COP</div>
+          <div><strong>IVA (19%):</strong> $${iva.toLocaleString()} COP</div>
+          <div><strong>Total:</strong> $${totalFactura.toLocaleString()} COP</div>`;
+
+        const infoAdicional = document.getElementById('infoAdicional');
+        if (totalFactura > 212000) {
+          infoAdicional.style.display = 'block';
+          document.getElementById('telefono').required = true;
+          document.getElementById('correo').required = true;
+        } else {
+          infoAdicional.style.display = 'none';
+          document.getElementById('telefono').required = false;
+          document.getElementById('correo').required = false;
+        }
+      }
+
+      window.eliminarProducto = function (index) {
+        productosAgregados.splice(index, 1);
+        actualizarLista();
+      };
+
+      window.agregarProducto = function () {
+        const nombre = productoNombre.value || productoSelect.value;
+        const precio = parseFloat(productoPrecio.value);
+        if (!nombre || isNaN(precio) || precio <= 0) {
+          alert("Por favor completa nombre y precio del producto.");
+          return;
+        }
+        productosAgregados.push({ nombre, precio });
+        productoSelect.value = '';
+        productoNombre.value = '';
+        productoPrecio.value = '';
+        productoNombre.style.display = 'none';
+        productoPrecio.style.display = 'none';
+        actualizarLista();
+      };
+
+      document.getElementById('facturaForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById('nombre').value;
+        const apellido = document.getElementById('apellido').value;
+        const telefono = document.getElementById('telefono').value;
+        const correo = document.getElementById('correo').value;
+
+        let detalle = '';
+        let subtotal = 0;
+
+        productosAgregados.forEach(p => {
+          detalle += `• ${p.nombre}: $${p.precio.toLocaleString()} COP\n`;
+          subtotal += p.precio;
+        });
+
+        const iva = subtotal * 0.19;
+        const totalFactura = subtotal + iva;
+        const fechaObj = new Date();
+        const fecha = fechaObj.toLocaleDateString();
+        const hora = fechaObj.toLocaleTimeString();
+
+        function formatoNumeroFactura(n) {
+          return n.toString().padStart(3, '0');
+        }
+
+        datosFactura = {
+          nombre,
+          apellido,
+          telefono,
+          correo,
+          detalle,
+          subtotal,
+          iva,
+          totalFactura,
+          fecha,
+          hora,
+          facturaNumero: formatoNumeroFactura(facturaNumero)
+        };
+
+facturaNumero++;  // Incrementamos el número de factura
+
+
+        let contenidoHTML = '';
+
+        if (totalFactura > 212000) {
+          contenidoHTML = `
+            <strong>Factura Electrónica</strong><br><br>
+            <strong>Cliente:</strong> ${nombre} ${apellido}<br>
+            <strong>Fecha:</strong> ${fecha} ${hora}<br>
+            <strong>Factura N°:</strong> ${datosFactura.facturaNumero}<br><br>
+            <strong>Productos/Servicios:</strong><br>${detalle.replace(/\n/g, '<br>')}
+            <strong>Subtotal:</strong> $${subtotal.toLocaleString()} COP<br>
+            <strong>IVA (19%):</strong> $${iva.toLocaleString()} COP<br>
+            <strong>Total:</strong> $${totalFactura.toLocaleString()} COP<br><br>
+            <strong>Teléfono:</strong> ${telefono}<br>
+            <strong>Correo:</strong> ${correo}<br><br>
+            <i>Esta es una factura electrónica válida para la DIAN.</i>
+          `;
+          document.getElementById('guardarPDF').style.display = 'block';
+        } else {
+          contenidoHTML = ` 
+            <strong>Factura POS</strong><br><br>
+            <strong>Cliente:</strong> ${nombre} ${apellido}<br>
+            <strong>Fecha:</strong> ${fecha} ${hora}<br>
+            <strong>Factura N°:</strong> ${datosFactura.facturaNumero}<br><br>
+            <strong>Productos/Servicios:</strong><br>${detalle.replace(/\n/g, '<br>')}
+            <strong>Subtotal:</strong> $${subtotal.toLocaleString()} COP<br>
+            <strong>IVA (19%):</strong> $${iva.toLocaleString()} COP<br>
+            <strong>Total:</strong> $${totalFactura.toLocaleString()} COP<br><br>
+            <i>Esta es una tirilla POS, válida solo para ventas menores a $212.000 COP.</i>
+          `;
+          document.getElementById('guardarPDF').style.display = 'none';
+        }
+
+        document.getElementById('resultado').innerHTML = contenidoHTML + document.getElementById('guardarPDF').outerHTML;
+        document.getElementById('guardarPDF').onclick = generarPDF;
+
+        alert("Factura generada con éxito.");
+      });
+
+      function generarPDF() {
+        if (!datosFactura) return;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        let y = 30;
+        const rightMargin = 200;
+
+        // CABECERA PRINCIPAL
+        doc.setFontSize(22);
+        doc.setTextColor(91, 60, 28); // Marrón oscuro
+        doc.setFont("helvetica", "bold");
+        doc.text("FactuSmart", 105, 15, { align: "center" });
+        doc.setDrawColor(160, 120, 80);
+        doc.line(10, 18, 200, 18);
+
+        y += 10;
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "bold");
+        doc.text("Factura Electrónica", 10, y);
+        y += 10;
+
+        // DATOS CLIENTE
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Cliente:", 10, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${datosFactura.nombre} ${datosFactura.apellido}`, 40, y); y += 8;
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Fecha:", 10, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${datosFactura.fecha} ${datosFactura.hora}`, 40, y); y += 8;
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Factura N°:", 10, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${datosFactura.facturaNumero}`, 40, y); y += 8;
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Teléfono:", 10, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${datosFactura.telefono}`, 40, y); y += 8;
+
+        doc.setFont("helvetica", "bold");
+        doc.text("Correo:", 10, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(`${datosFactura.correo}`, 40, y); y += 12;
+
+        // PRODUCTOS / SERVICIOS
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(80, 60, 40);
+        doc.text("Productos/Servicios:", 10, y); y += 8;
+
+        doc.setFontSize(11);
+        doc.setTextColor(40, 40, 40);
+        datosFactura.detalle.split('\n').forEach(p => {
+          if (p.trim()) {
+            const [rawNombre, rawPrecio] = p.split(':');
+            const nombre = rawNombre.replace('•', '').trim();
+            const precio = rawPrecio?.trim() || '';
+
+            // Nombre en negrita
+            doc.setFont("helvetica", "normal");
+            doc.text(`• ${nombre}`, 53, y);
+
+            // Precio normal alineado a la derecha
+            doc.setFont("helvetica", "normal");
+            doc.text(precio, 200, y, { align: "right" });
+
+            y += 6;
+
+            // Línea divisoria
+            doc.setDrawColor(220);
+            doc.line(10, y, 200, y);
+            y += 4;
+          }
+        });
+
+        // DIVISORIO
+        y += 4;
+        doc.setDrawColor(160, 120, 80);
+        doc.line(10, y, 200, y); y += 6;
+
+        // TOTALES A LA DERECHA
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.setTextColor(60, 60, 60);
+        doc.text(`Subtotal: $${datosFactura.subtotal.toLocaleString()}`, rightMargin, y, { align: "right" }); y += 7;
+        doc.text(`IVA (19%): $${datosFactura.iva.toLocaleString()}`, rightMargin, y, { align: "right" }); y += 7;
+
+        doc.setTextColor(0, 102, 51); // Verde oscuro
+        doc.setFontSize(14);
+        doc.text(`TOTAL: $${datosFactura.totalFactura.toLocaleString()}`, rightMargin, y, { align: "right" }); y += 10;
+
+        // NOTA FINAL
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        if (datosFactura.totalFactura > 212000) {
+          doc.text("Esta es una factura electrónica válida para la DIAN.", 10, y);
+        } else {
+          doc.text("Esta es una tirilla válida solo para ventas menores a $212.000 COP.", 10, y);
+        }
+
+        y += 12;
+        doc.setFontSize(9);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Gracias por su compra. Para soporte: contacto@factusmart.com", 10, y);
+
+        doc.save("factura.pdf");
+      }
+
+
+    });
+  </script>
+</body>
+
+</html>
