@@ -194,43 +194,54 @@
       border-radius: 5px;
       background-color: #fff8e1;
       color: #333;
+
+      /* Responsive - Ajuste para dispositivo movil  */
     }@media (max-width: 768px) {
-  .main-wrapper {
-    flex-direction: column;
-    align-items: center;
-  }
+      .main-wrapper {
+        flex-direction: column;
+        align-items: center;
+        padding: 10px; 
+      }
 
-  .form-container,
-  .resultado {
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-  }
+      .form-container {
+        width: 100%;
+        max-width: 500px; 
+        padding: 20px; 
+        box-sizing: border-box; 
+      }
 
-  .inline-group {
-    flex-direction: column;
-  }
+      .resultado {
+        width: 100%;
+        max-width: 500px;
+        padding: 20px;
+        box-sizing: border-box;
+      }
 
-  .info-inline {
-    flex-direction: column;
-  }
 
-  button {
-    font-size: 16px;
-    padding: 12px;
-  }
+        .inline-group {
+          flex-direction: column;
+        }
 
-  input[type="text"],
-  input[type="number"],
-  input[type="email"],
-  select {
-    font-size: 16px;
-  }
+        .info-inline {
+          flex-direction: column;
+        }
 
-  .total-visual {
-    font-size: 14px;
-  }
-}
+        button {
+          font-size: 16px;
+          padding: 12px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        select {
+          font-size: 16px;
+        }
+
+        .total-visual {
+          font-size: 14px;
+        }
+      }
 
   </style>
 </head>
